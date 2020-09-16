@@ -25,8 +25,8 @@ while (1):
             pr,pw=os.pipe()
             for f in (pr,pw):
                 os.set_inheritable(f,True)
-            piping=os.fork()#forking twice to keep better tracker
-            if piping==0:#child is sending output to parent
+            piping=os.fork()#forking twice 
+            if piping==0:#child is sending output to second child
                 os.close(1)#snippet modified from pipe demo
                 os.dup2(pw,1)
                 for fd in (pr,pw):
@@ -43,7 +43,7 @@ while (1):
                     except FileNotFoundError:
                         pass
                     print(tokens[0] + ": command not found.") 
-            else:#parent receives the output of child
+            else:#second child receives the output of first child
                 os.wait()
                 os.close(0)#closed to allow piping
                 os.dup2(pr,0)
@@ -64,7 +64,7 @@ while (1):
                 sys.exit()
         else:
             os.wait()#waits for children to finish to accept more commands
-    elif "<" in response:#treating < as a backwards pipe
+    elif "<" in response:#Input redirection
         commands=response.split("<")
         commands[0],commands[1]=commands[0].strip(),commands[1].strip()
         rc = os.fork()
@@ -125,6 +125,7 @@ while (1):
             if len(tokens)>1: 
                 try:
                     os.chdir(tokens[1])
+                    os.write(1, os.getcwd().encode())
                 except FileNotFoundError:
                     print ("No such file or folder")
                     pass
@@ -165,6 +166,7 @@ while (1):
             if len(tokens)>1: 
                 try:
                     os.chdir(tokens[1])
+                    os.write(1, os.getcwd().encode())
                 except FileNotFoundError:
                     print ("No such file or folder")
                     pass
